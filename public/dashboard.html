@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Dashboard</title>
+        <script src = "https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="style.css">
+</head>
+
+
+    <body>
+        <h1>My organization</h1>
+
+        <div id="orgs"></div>
+        <button onclick ="togoOnboarding()">+ Create organization</button>
+    </body>
+
+
+    <script>
+        async function togoOnboarding(){
+            window.location.href = "onboarding.html";
+        }
+
+        async function loadOrgs(){
+            const response = await axios.get("http://localhost:3008/my-organization", {
+
+             headers : {token:localStorage.getItem("token")}})
+             console.log(response.data.organizations)
+
+
+             const orgs = response.data.organizations
+
+             orgs.forEach(function(org){ //for each org 
+                const div = document.createElement("div") //make a box
+                div.innerHTML = org.title;  //write it's name 
+
+                const boardsLink = document.createElement("a")
+                boardsLink.innerHTML = " Boards"
+                boardsLink.href = "board.html?organizationId=" + org._id;
+                div.appendChild(boardsLink);
+
+
+                document.getElementById("orgs").appendChild(div) //put it on the page 
+
+             })
+
+
+
+
+        }
+
+        loadOrgs(); //runs automatically when the page opens 
+
+
+
+
+    </script>
+
+
+
+
+
+
+</html>

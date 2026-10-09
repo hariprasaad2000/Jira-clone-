@@ -1,0 +1,116 @@
+<html>
+<head>
+    <title>Main board</title>   
+<script  src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>  
+
+<style>
+    #board {
+        display:grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap:20px
+        }
+        .board-card{
+            border: 1px solid black;
+            border-radius : 10px;
+            height : 120px;
+            padding : 10px;
+            cursor: pointer 
+
+        }
+</style>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <input id = "boards" type = "text" placeholder="your board">
+
+    <button onclick = "board()">create board</button>
+    <button onclick = "getBoard()"> view boards</button>
+
+
+    <div id="board"></div>
+
+</body>
+
+
+<script>
+
+    async function board(){
+
+
+    const params = new URLSearchParams(window.location.search);
+    const organizationId = params.get("organizationId")
+
+    const  boards = document.getElementById("boards").value
+
+    const response = await axios.post("http://localhost:3008/board" , {
+        board : boards,
+        organizationId: organizationId
+    },
+    {headers:{token: localStorage.getItem("token")}}
+
+) }
+
+
+async function getBoard(){
+    const params = new URLSearchParams(window.location.search);
+    const organizationId = params.get("organizationId");
+
+    const response = await axios.get("http://localhost:3008/board", {
+        headers : {
+            token: localStorage.getItem("token")
+        }, 
+        params : {
+            organizationId: organizationId
+        }
+    })
+    
+    console.log(response.data.boards)
+
+ 
+
+
+
+
+
+
+
+
+
+    const boards = response.data.boards;
+
+    document.getElementById("board").innerHTML= "";
+
+    boards.forEach(function(board){
+        const  div = document.createElement("div");
+        div.innerHTML = board.board;
+
+        div.className = "board-card";
+        div.onclick= function(){
+            window.location.href = "issues.html?boardId=" + board._id;
+        }
+
+        document.getElementById("board").appendChild(div);
+        
+
+
+
+    })
+
+    
+         
+    
+
+}
+
+</script>
+
+
+
+
+
+
+
+</html>

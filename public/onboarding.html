@@ -1,0 +1,89 @@
+<html>
+    <title>Create your first org</title>
+
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="style.css">
+</head>
+
+
+    <body>
+        <input  id ="title" type = "text" placeholder = "name">
+        <input id = "description" type = "text" placeholder = "description">
+        
+
+        <button onclick = "Org()">Create organization</button>
+
+        <button onclick = "getOrg()">View org</button>
+
+        
+
+
+    </body>
+
+
+
+    <script> 
+
+     async function Org(){
+
+        const title = document.getElementById("title").value 
+        const description = document.getElementById("description").value
+
+         const response = await axios.post("http://localhost:3008/onboarding" , {
+            title : title,
+            description : description
+         },
+          {headers: {token : localStorage.getItem("token")}})
+
+          const organizationId = response.data.id
+
+          //save organizationId in browser
+          localStorage.setItem("organizationId" , organizationId);
+
+          console.log("Organization ID:", organizationId);
+
+
+          window.location.href = "members.html?organizationId=" + organizationId;
+
+          
+     }
+
+     async function getOrg(){
+
+        const organizationId = localStorage.getItem("organizationId")
+
+        const response = await axios.get("http://localhost:3008/onboarding" , {
+
+            headers : {
+                token : localStorage.getItem("token")
+            } , 
+            params : {
+                organizationId: organizationId
+            }
+
+          
+      })
+
+      console.log(response.data.organizations)
+
+      const newDiv = document.createElement("div")
+          newDiv.innerHTML = response.data.organizations
+
+
+    }
+
+
+         
+          
+
+
+
+
+        
+
+
+
+    </script>
+
+    </html>

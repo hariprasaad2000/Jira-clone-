@@ -1,0 +1,57 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <input  id = "username" type = "text"  placeholder= "username">
+   <button onclick="addMember()">Invite</button>
+
+   <button onclick = "deleteMember()">Delete member</button>
+
+   <button onclick="goToBoards()">Go to boards</button>
+   <a href="dashboard.html">Back to dashboard</a>
+
+
+
+    
+
+
+</body>
+
+
+<script>
+
+    async function addMember(){
+        const params = new URLSearchParams(window.location.search);
+        const organizationId = params.get("organizationId")
+
+        const  username = document.getElementById("username").value
+        
+        const response = await axios.post("http://localhost:3008/add-member-to-organization" , {
+
+            memberUserUsername : username,
+            organizationId: organizationId
+        } ,
+            {headers: {token: localStorage.getItem("token")}}, 
+     
+        )
+    }
+
+
+    async function goToBoards(){
+        const params = new URLSearchParams(window.location.search);
+        const organizationId = params.get("organizationId");
+        window.location.href = "board.html?organizationId="+organizationId;
+    }
+
+
+
+
+    
+</script>
+
+
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trello Clone</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #172b4d;
+      --muted: #5e6c84;
+      --border: #dfe1e6;
+      --primary: #0c66e4;
+      --primary-hover: #0055cc;
+      --danger: #c9372c;
+      --success: #1f845a;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    button {
+      font: inherit;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 500;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary { background: #e9ebee; color: var(--text); }
+    button.secondary:hover { background: #dcdfe4; }
+    button.danger { background: transparent; color: var(--danger); padding: 4px 8px; }
+    button.danger:hover { background: #ffeceb; }
+    input, textarea {
+      font: inherit;
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+    }
+    input:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* ---------- auth ---------- */
+    .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+    .auth-card {
+      width: 100%; max-width: 380px; background: var(--card);
+      padding: 32px; border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(9,30,66,.12);
+    }
+    .auth-card h1 { margin: 0 0 4px; font-size: 24px; text-align: center; }
+    .auth-card p.sub { margin: 0 0 16px; text-align: center; color: var(--muted); }
+    .auth-card button[type=submit] { width: 100%; margin-top: 20px; padding: 10px; }
+    .switch { text-align: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
+    .switch a { color: var(--primary); cursor: pointer; text-decoration: none; font-weight: 500; }
+
+    /* ---------- app ---------- */
+    header {
+      background: #1d2125; color: #fff; padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header .logo { font-weight: 700; font-size: 18px; }
+    header .user { display: flex; gap: 12px; align-items: center; font-size: 14px; }
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 52px); }
+    aside { background: var(--card); border-right: 1px solid var(--border); padding: 16px; }
+    aside h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 0 10px; }
+    .org-list { list-style: none; padding: 0; margin: 0 0 16px; }
+    .org-list li {
+      padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .org-list li:hover { background: #f1f2f4; }
+    .org-list li.active { background: #e9f2ff; color: var(--primary); font-weight: 600; }
+    .badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcfff1; color: var(--success); font-weight: 600; }
+    .badge.member { background: #f1f2f4; color: var(--muted); }
+    .empty { color: var(--muted); font-size: 14px; }
+    main { padding: 28px; }
+    .panel { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: 0 1px 2px rgba(9,30,66,.15); max-width: 720px; }
+    .panel h2 { margin: 0 0 4px; }
+    .panel .desc { color: var(--muted); margin: 0 0 24px; }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; }
+    .members { list-style: none; padding: 0; margin: 12px 0 0; }
+    .members li {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff;
+      display: inline-grid; place-items: center; font-weight: 600; margin-right: 10px; font-size: 14px;
+    }
+
+    /* ---------- toast ---------- */
+    #toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 10px 18px; border-radius: 6px; color: #fff; font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2); transition: opacity .2s; opacity: 0; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+    #toast.ok { background: var(--success); }
+    #toast.err { background: var(--danger); }
+
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { border-right: none; border-bottom: 1px solid var(--border); }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= SIGN UP / SIGN IN ================= -->
+  <div id="auth" class="auth-wrap">
+    <form id="authForm" class="auth-card">
+      <h1>Trello Clone</h1>
+      <p class="sub" id="authSub">Sign in to continue</p>
+      <label for="username">Username</label>
+      <input id="username" required autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" type="password" required autocomplete="current-password" />
+      <button type="submit" id="authBtn">Sign in</button>
+      <div class="switch">
+        <span id="switchText">Don't have an account?</span>
+        <a id="switchLink">Sign up</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="app" class="hidden">
+    <header>
+      <div class="logo">Trello Clone</div>
+      <div class="user">
+        <span id="whoami"></span>
+        <button class="secondary" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside>
+        <h3>Your organizations</h3>
+        <ul class="org-list" id="orgList"></ul>
+
+        <h3>New organization</h3>
+        <form id="createOrgForm">
+          <input id="orgTitle" placeholder="Title" required />
+          <textarea id="orgDesc" placeholder="Description" rows="2" style="margin-top:8px"></textarea>
+          <button type="submit" style="margin-top:8px;width:100%">Create organization</button>
+        </form>
+      </aside>
+
+      <main>
+        <div id="noOrg" class="empty">Select or create an organization to get started.</div>
+
+        <div id="orgPanel" class="panel hidden">
+          <h2 id="orgName"></h2>
+          <p class="desc" id="orgDescText"></p>
+
+          <div id="adminTools">
+            <h3>Add member</h3>
+            <form id="addMemberForm" class="row">
+              <input id="memberUsername" placeholder="Username" required />
+              <button type="submit">Add</button>
+            </form>
+
+            <h3 style="margin-top:28px">Members</h3>
+            <ul class="members" id="memberList"></ul>
+          </div>
+
+          <p id="memberNote" class="empty hidden">You're a member of this organization. Only the admin can view and manage members.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API = ""; // same origin — the Express server serves this file
+
+    let mode = "signin";
+    let selectedOrg = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- helpers ----------
+    function toast(msg, ok = true) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.className = "show " + (ok ? "ok" : "err");
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => (t.className = ""), 2500);
+    }
+
+    async function api(path, method = "GET", body) {
+      const res = await fetch(API + path, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          token: localStorage.getItem("token") || ""
+        },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.message === "Token was incorrect") logout();
+        throw new Error(data.message || "Request failed");
+      }
+      return data;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    // ---------- auth ----------
+    function setMode(m) {
+      mode = m;
+      const signup = m === "signup";
+      $("authSub").textContent = signup ? "Create your account" : "Sign in to continue";
+      $("authBtn").textContent = signup ? "Sign up" : "Sign in";
+      $("switchText").textContent = signup ? "Already have an account?" : "Don't have an account?";
+      $("switchLink").textContent = signup ? "Sign in" : "Sign up";
+    }
+
+    $("switchLink").onclick = () => setMode(mode === "signin" ? "signup" : "signin");
+
+    $("authForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const username = $("username").value.trim();
+      const password = $("password").value;
+      try {
+        if (mode === "signup") {
+          const data = await api("/signup", "POST", { username, password });
+          toast(data.message);
+          setMode("signin");
+          return;
+        }
+        const data = await api("/signin", "POST", { username, password });
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", username);
+        showApp();
+      } catch (err) {
+        toast(err.message, false);
+      }
+    };
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      selectedOrg = null;
+      $("app").classList.add("hidden");
+      $("auth").classList.remove("hidden");
+      $("password").value = "";
+    }
+    $("logoutBtn").onclick = logout;
+
+    // ---------- dashboard ----------
+    function showApp() {
+      $("auth").classList.add("hidden");
+      $("app").classList.remove("hidden");
+      $("whoami").textContent = "Signed in as " + localStorage.getItem("username");
+      loadOrgs();
+    }
+
+    // The backend has no "list my orgs" route, so the frontend remembers
+    // the orgs you created in this browser.
+    function orgsKey() { return "orgs:" + localStorage.getItem("username"); }
+    function getSavedOrgs() {
+      try { return JSON.parse(localStorage.getItem(orgsKey())) || []; } catch { return []; }
+    }
+    function saveOrg(org) {
+      const orgs = getSavedOrgs().filter((o) => o.id !== org.id);
+      orgs.push(org);
+      localStorage.setItem(orgsKey(), JSON.stringify(orgs));
+    }
+
+    async function loadOrgs() {
+      try {
+        const organizations = getSavedOrgs();
+        const list = $("orgList");
+        list.innerHTML = "";
+        if (!organizations.length) {
+          list.innerHTML = '<li class="empty" style="cursor:default">No organizations yet</li>';
+        }
+        organizations.forEach((org) => {
+          const li = document.createElement("li");
+          li.className = selectedOrg && selectedOrg.id === org.id ? "active" : "";
+          li.innerHTML = `<span>${escapeHtml(org.title)}</span>
+            <span class="badge ${org.isAdmin ? "" : "member"}">${org.isAdmin ? "Admin" : "Member"}</span>`;
+          li.onclick = () => selectOrg(org);
+          list.appendChild(li);
+        });
+      } catch (err) {
+        toast(err.message, false);
+      }
+    }
+
+    async function selectOrg(org) {
+      selectedOrg = org;
+      $("noOrg").classList.add("hidden");
+      $("orgPanel").classList.remove("hidden");
+      $("orgName").textContent = org.title;
+      $("orgDescText").textContent = org.description || "No description";
+      $("adminTools").classList.toggle("hidden", !org.isAdmin);
+      $("memberNote").classList.toggle("hidden", org.isAdmin);
+      loadOrgs();
+      if (org.isAdmin) loadMembers();
+    }
+
+    async function loadMembers() {
+      try {
+        const { organization } = await api("/organization?organizationId=" + selectedOrg.id);
+        const list = $("memberList");
+        list.innerHTML = "";
+        if (!organization.members.length) {
+          list.innerHTML = '<li class="empty">No members yet — add someone above.</li>';
+        }
+        organization.members.forEach((m) => {
+          const li = document.createElement("li");
+          li.innerHTML = `<span><span class="avatar">${escapeHtml(m.username[0].toUpperCase())}</span>${escapeHtml(m.username)}</span>`;
+          const btn = document.createElement("button");
+          btn.className = "danger";
+          btn.textContent = "Remove";
+          btn.onclick = () => removeMember(m.username);
+          li.appendChild(btn);
+          list.appendChild(li);
+        });
+      } catch (err) {
+        toast(err.message, false);
+      }
+    }
+
+    $("createOrgForm").onsubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const title = $("orgTitle").value.trim();
+        const description = $("orgDesc").value.trim();
+        const data = await api("/organization", "POST", { title, description });
+        toast(data.message);
+        $("orgTitle").value = "";
+        $("orgDesc").value = "";
+        const org = { id: data.id, title, description, isAdmin: true };
+        saveOrg(org);
+        selectOrg(org);
+      } catch (err) {
+        toast(err.message, false);
+      }
+    };
+
+    $("addMemberForm").onsubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const data = await api("/add-member-to-organization", "POST", {
+          organizationId: selectedOrg.id,
+          memberUserUsername: $("memberUsername").value.trim()
+        });
+        toast(data.message);
+        $("memberUsername").value = "";
+        loadMembers();
+      } catch (err) {
+        toast(err.message, false);
+      }
+    };
+
+    async function removeMember(username) {
+      try {
+        const data = await api("/remove-member-from-organization", "DELETE", {
+          organizationId: selectedOrg.id,
+          memberUserUsername: username
+        });
+        toast(data.message);
+        loadMembers();
+      } catch (err) {
+        toast(err.message, false);
+      }
+    }
+
+    // ---------- boot ----------
+    if (localStorage.getItem("token")) showApp();
+  </script>
+</body>
+</html>

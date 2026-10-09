@@ -1,0 +1,182 @@
+<html>
+    <head>
+        <title>Issues</title>
+        <script src = "https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+        <style>
+
+            #board {
+                display:grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap:20px;
+                margin-top: 20px;
+              }
+
+              .column {
+                border :1px solid #ccc;
+                border-radius:10px;
+                padding:10px;
+                min-height: 300px;
+             }
+
+             .column h3 {
+                text-align: center;
+             }
+
+             .Issue-card {
+
+                border:1px solid black;
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+             }
+
+             .Issue-card button{
+                margin-top:8px;
+                cursor:pointer;
+             }
+
+
+
+
+        </style>
+
+        <link rel="stylesheet" href="style.css">
+</head>
+
+    <body>
+
+        <input id = "title" type = "text" placeholder= "issue">
+         <button onclick = "Issue()">Create Issue </button>
+         <button onclick = "getIssue()"> View Issue</button>
+
+
+         <div id="board"> 
+            <div class="column">
+            <h3>Up Next</h3>
+            <div id ="up-next"></div>
+         </div>
+
+         <div class="column">
+            <h3>In Progress</h3>
+            <div id="in-progress"></div>
+        </div>
+        <div class="column">
+            <h3>Done</h3>
+            <div id="done"></div>
+
+          </div>
+
+        </div>
+
+
+
+   </body>
+
+
+
+<script> 
+
+async function Issue(){
+    const params = new URLSearchParams(window.location.search);
+    const boardId = params.get("boardId")
+
+    const title = document.getElementById("title").value 
+
+    const response = await axios.post("http://localhost:3008/issues" , {
+
+        title : title ,
+        status : "up next",
+        boardId : boardId
+    } ,
+     {headers: {token: localStorage.getItem("token")}})
+
+     document.getElementById("title").value = "" //
+
+}
+
+
+async function getIssue(){
+    const params = new URLSearchParams(window.location.search);
+    const boardId = params.get("boardId");
+
+    const response = await axios.get("http://localhost:3008/issues" , {
+
+
+              headers : {token : localStorage.getItem("token")} , 
+            params : {
+                boardId : boardId
+            }
+
+
+
+  })
+           const issues = response.data.issues;
+
+           //clear all three column
+           document.getElementById("up-next").innerHTML = ""
+           document.getElementById("in-progress").innerHTML = ""
+           document.getElementById("done").innerHTML = ""
+
+
+           issues.forEach(function(issue){
+
+            const div = document.createElement("div")
+            div.innerHTML = issue.title;
+            div.className = "Issue-card";
+
+          
+            if (issue.status !="done"){
+                const moveBtn = document.createElement("button")
+                moveBtn.innerHTML = "move ->"
+                moveBtn.onclick = function(){
+                    updateIssue(issue._id)
+                }
+                div.appendChild(moveBtn);
+            }
+
+
+            //sort into the right column by status 
+            if (issue.status=="up next"){
+                document.getElementById("up-next").appendChild(div)
+            } else if (issue.status==="in progress") {
+                document.getElementById("in-progress").appendChild(div)
+            } else {
+                document.getElementById("done").appendChild(div)
+            }
+
+
+
+           })
+
+    }
+
+async function updateIssue(issueId){
+
+    await axios.put("http://localhost:3008/issues" , 
+        {issueId: issueId,
+        }, 
+    {headers: {token: localStorage.getItem("token")}})
+
+
+
+    getIssue()   //refresh so the  card jumps into new column
+    
+
+}
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+</html>
