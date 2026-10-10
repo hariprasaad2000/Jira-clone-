@@ -20,7 +20,7 @@
         }
 
         async function loadOrgs(){
-            const response = await axios.get("http://localhost:3008/my-organization", {
+            const response = await axios.get("/my-organization", {
 
              headers : {token:localStorage.getItem("token")}})
              console.log(response.data.organizations)

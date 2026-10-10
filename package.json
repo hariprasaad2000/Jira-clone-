@@ -1,0 +1,14 @@
+{
+  "name": "jira-clone",
+  "version": "1.0.0",
+  "description": "Full-stack Trello/Jira-style project tracker",
+  "main": "trello.js",
+  "scripts": {
+    "start": "node trello.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5"
+  }
+}

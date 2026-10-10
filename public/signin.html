@@ -24,7 +24,7 @@
             const username = document.getElementById("username").value 
             const password = document.getElementById("password").value
 
-            const response= await axios.post("http://localhost:3008/signin", {
+            const response= await axios.post("/signin", {
                 username : username,
                 password : password
             })

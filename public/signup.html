@@ -29,7 +29,7 @@
             const username = document.getElementById("username").value 
             const password = document.getElementById("password").value
 
-             await axios.post("http://localhost:3008/signup" , {
+             await axios.post("/signup" , {
                username: username,
               password:  password
             })

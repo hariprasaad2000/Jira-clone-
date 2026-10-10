@@ -30,7 +30,7 @@
 
         const  username = document.getElementById("username").value
         
-        const response = await axios.post("http://localhost:3008/add-member-to-organization" , {
+        const response = await axios.post("/add-member-to-organization" , {
 
             memberUserUsername : username,
             organizationId: organizationId

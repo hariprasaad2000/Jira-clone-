@@ -45,7 +45,7 @@
 
     const  boards = document.getElementById("boards").value
 
-    const response = await axios.post("http://localhost:3008/board" , {
+    const response = await axios.post("/board" , {
         board : boards,
         organizationId: organizationId
     },
@@ -58,7 +58,7 @@ async function getBoard(){
     const params = new URLSearchParams(window.location.search);
     const organizationId = params.get("organizationId");
 
-    const response = await axios.get("http://localhost:3008/board", {
+    const response = await axios.get("/board", {
         headers : {
             token: localStorage.getItem("token")
         }, 
