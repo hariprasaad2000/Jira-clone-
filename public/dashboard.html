@@ -27,6 +27,11 @@
 
 
              const orgs = response.data.organizations
+             if (orgs.length === 0) {
+        document.getElementById("orgs").innerHTML =
+        "You're not in any organization yet. Create one, or ask an admin to invite you.";
+        return;
+       }
 
              orgs.forEach(function(org){ //for each org 
                 const div = document.createElement("div") //make a box
